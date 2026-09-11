@@ -19,8 +19,9 @@ The pre-earnings windows cover E-30, E-20, E-10, and E-5 through E-1.
 python3 -m pip install -e ".[dev]"
 ```
 
-The current implementation uses `pandas`, `numpy`, and `pytest`. The engine is structured
-so real historical option-chain adapters can be added without changing the strategy code.
+The current implementation uses `pandas`, `numpy`, `pytest`, `requests`, and `yfinance`.
+The engine is structured so real historical option-chain adapters can be added without
+changing the strategy code.
 
 ## Test Suite
 
@@ -31,7 +32,7 @@ python3 -m pytest -q
 Current verified result:
 
 ```text
-14 passed
+22 passed
 ```
 
 The tests were written before implementation and cover:
@@ -58,6 +59,25 @@ python3 -m options_research.cli \
 
 This writes a ranked markdown report and also prints it to the terminal.
 
+## Run A Broad Live Scan
+
+```bash
+python3 -m options_research.live_cli \
+  --max-contract-cost 3000 \
+  --min-score 75 \
+  --top 75 \
+  --chunk-size 300 \
+  --option-workers 12 \
+  --output outputs/broad_market_live_scan.md
+```
+
+This command loads public U.S. listings from Nasdaq Trader symbol directories, filters
+common stocks by price and 20-day dollar volume, then checks targeted option expirations
+with Yahoo Finance option-chain data. The scanner is intentionally rate-limit aware, but
+free public option-chain sources can still throttle full-market runs. When that happens,
+use the saved partial output plus a broker/scanner feed for the broad discovery stage and
+run contract-level scoring on the narrowed list.
+
 ## Architecture
 
 - `options_research/events.py`: aligns events to tradable sessions and enforces no-lookahead checks.
@@ -69,6 +89,9 @@ This writes a ranked markdown report and also prints it to the terminal.
 - `options_research/strategies/`: modular strategy implementations.
 - `options_research/fixtures.py`: deterministic fixture prices, earnings, and option chains.
 - `options_research/report.py`: ranked markdown report generation.
+- `options_research/universe.py`: public U.S. listing universe loading and cleanup.
+- `options_research/live_scan.py`: transparent live call scoring and live report rows.
+- `options_research/live_cli.py`: broad-market live scanner CLI.
 - `tests/`: TDD coverage for the core behavior.
 
 ## Methodology And Anti-Bias Safeguards
