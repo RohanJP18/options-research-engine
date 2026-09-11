@@ -18,6 +18,7 @@ def backtest_long_dated_calls(
         delta_tolerance=0.18,
         min_volume=100,
         min_open_interest=250,
+        min_premium_volume=50_000,
         max_spread_pct=0.30,
         prefer_expiry_after_event=False,
     )

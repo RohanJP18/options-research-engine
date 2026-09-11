@@ -47,6 +47,10 @@ class OptionQuote:
         return (self.ask - self.bid) / self.mid
 
     @property
+    def premium_volume(self) -> float:
+        return self.volume * self.mid * 100
+
+    @property
     def contract_id(self) -> str:
         return f"{self.ticker}-{self.expiry.isoformat()}-{self.option_type}-{self.strike:g}"
 
@@ -61,6 +65,7 @@ class ContractSelectionRules:
     moneyness_tolerance: float = 0.10
     min_volume: int = 50
     min_open_interest: int = 100
+    min_premium_volume: float = 0.0
     max_spread_pct: float = 0.30
     prefer_expiry_after_event: bool = True
 

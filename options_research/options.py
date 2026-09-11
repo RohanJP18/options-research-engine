@@ -36,7 +36,14 @@ class ContractSelector:
         def rank(quote: OptionQuote) -> tuple:
             expiry_rank = abs((quote.expiry - event_date).days) if event_date else -self._dte(quote, quote_date)
             target_rank = self._target_distance(quote, underlying_price)
-            return (expiry_rank, target_rank, quote.spread_pct, -quote.open_interest, -quote.volume)
+            return (
+                expiry_rank,
+                target_rank,
+                quote.spread_pct,
+                -quote.premium_volume,
+                -quote.open_interest,
+                -quote.volume,
+            )
 
         return sorted(candidates, key=rank)[0]
 
@@ -50,6 +57,7 @@ class ContractSelector:
             and quote.spread_pct <= self.rules.max_spread_pct
             and quote.volume >= self.rules.min_volume
             and quote.open_interest >= self.rules.min_open_interest
+            and quote.premium_volume >= self.rules.min_premium_volume
         )
 
     def _passes_delta_or_moneyness(self, quote: OptionQuote, underlying_price: float) -> bool:

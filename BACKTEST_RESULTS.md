@@ -17,13 +17,16 @@ Test command:
 python3 -m pytest -q
 ```
 
-Verified test result: `11 passed`.
+Verified test result: `14 passed`.
 
 ## Data Used
 
 The run used deterministic fixture data for NVDA, TSLA, ORCL, AMD, and META. The fixture
 contains synthetic underlying prices, known earnings dates, and synthetic option chains
 with bid/ask spreads, deltas, volume, and open interest.
+
+The current engine also derives premium-dollar volume from each option quote as
+`volume * midpoint * 100` and uses it in contract filtering/ranking.
 
 This is a methodology and software-validation backtest. It is not evidence of a live
 trading edge because it does not use real historical option-chain data.

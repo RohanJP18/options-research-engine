@@ -31,14 +31,15 @@ python3 -m pytest -q
 Current verified result:
 
 ```text
-11 passed
+14 passed
 ```
 
 The tests were written before implementation and cover:
 
 - Earnings date alignment for post-market and pre-market reports.
 - No-future-leakage checks for event knowledge and quote dates.
-- Contract selection by DTE, delta/moneyness, liquidity, spread, and expiry after earnings.
+- Contract selection by DTE, delta/moneyness, raw volume, premium-dollar volume,
+  open interest, spread, and expiry after earnings.
 - Long-option P&L using bid/ask plus slippage.
 - Implied move from ATM straddle quotes.
 - Missing option-chain behavior.
@@ -60,7 +61,8 @@ This writes a ranked markdown report and also prints it to the terminal.
 ## Architecture
 
 - `options_research/events.py`: aligns events to tradable sessions and enforces no-lookahead checks.
-- `options_research/options.py`: contract selection and implied-move calculations.
+- `options_research/options.py`: contract selection, premium-dollar liquidity ranking,
+  and implied-move calculations.
 - `options_research/execution.py`: bid/ask/slippage-aware long-option execution.
 - `options_research/metrics.py`: win rate, mean/median return, max drawdown, expectancy, and sample size.
 - `options_research/scoring.py`: transparent weighted opportunity scores.
@@ -76,6 +78,8 @@ This writes a ranked markdown report and also prints it to the terminal.
 - Pre-earnings exits occur before the earnings event, avoiding accidental event exposure.
 - Post-earnings realized move is measured only after the event session is reached.
 - Option trades buy at ask plus slippage and sell at bid minus slippage.
+- Contract filters use raw volume, open interest, bid/ask spread, and premium-dollar
+  volume so high-volume penny contracts do not look falsely liquid.
 - Missing option-chain or missing exit-quote cases are skipped with explicit reasons.
 - Opportunity scores are weighted formulas, not opaque judgments.
 
@@ -93,6 +97,8 @@ To use real data, add a new `DataBundle` adapter that supplies:
 - `EarningsEvent` records with event date, timing, and preferably `announced_on`.
 - Historical `OptionQuote` records with quote date, expiry, strike, bid, ask, delta,
   volume, and open interest.
+
+`premium_volume` is derived by the engine as `volume * midpoint * 100`.
 
 ## Example Output
 

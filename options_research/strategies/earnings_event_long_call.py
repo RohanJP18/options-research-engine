@@ -18,6 +18,7 @@ def backtest_earnings_event_long_call(
         delta_tolerance=0.15,
         min_volume=100,
         min_open_interest=250,
+        min_premium_volume=50_000,
         max_spread_pct=0.25,
         prefer_expiry_after_event=True,
     )

@@ -142,6 +142,7 @@ def backtest_event_long_call(
             "max_spread_pct": str(rules.max_spread_pct),
             "min_volume": str(rules.min_volume),
             "min_open_interest": str(rules.min_open_interest),
+            "min_premium_volume": str(rules.min_premium_volume),
         },
         score=score,
     )

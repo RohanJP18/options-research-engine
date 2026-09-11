@@ -21,6 +21,67 @@ def q(**overrides):
     return OptionQuote(**values)
 
 
+def test_option_quote_calculates_premium_volume_from_midpoint():
+    quote = q(bid=1.0, ask=1.2, volume=250)
+
+    assert quote.premium_volume == 27_500
+
+
+def test_contract_selection_filters_by_min_premium_volume():
+    rules = ContractSelectionRules(
+        min_dte=5,
+        max_dte=60,
+        target_delta=0.55,
+        delta_tolerance=0.12,
+        max_spread_pct=0.20,
+        min_volume=100,
+        min_open_interest=250,
+        min_premium_volume=50_000,
+        prefer_expiry_after_event=True,
+    )
+
+    selected = ContractSelector(rules).select(
+        quotes=[
+            q(strike=105.0, bid=0.2, ask=0.22, volume=1_000, delta=0.55),
+            q(strike=106.0, bid=2.4, ask=2.6, volume=250, delta=0.55),
+        ],
+        ticker="XYZ",
+        quote_date=date(2024, 2, 14),
+        underlying_price=100.0,
+        event_date=date(2024, 2, 21),
+    )
+
+    assert selected is not None
+    assert selected.strike == 106.0
+
+
+def test_contract_selection_uses_premium_volume_as_liquidity_tiebreaker():
+    rules = ContractSelectionRules(
+        min_dte=5,
+        max_dte=60,
+        target_delta=0.55,
+        delta_tolerance=0.12,
+        max_spread_pct=0.20,
+        min_volume=100,
+        min_open_interest=250,
+        prefer_expiry_after_event=True,
+    )
+
+    selected = ContractSelector(rules).select(
+        quotes=[
+            q(strike=105.0, bid=0.45, ask=0.55, volume=1_000, delta=0.55, open_interest=500),
+            q(strike=106.0, bid=4.95, ask=5.05, volume=200, delta=0.55, open_interest=500),
+        ],
+        ticker="XYZ",
+        quote_date=date(2024, 2, 14),
+        underlying_price=100.0,
+        event_date=date(2024, 2, 21),
+    )
+
+    assert selected is not None
+    assert selected.strike == 106.0
+
+
 def test_contract_selection_prefers_closest_expiry_after_earnings_with_liquidity_filters():
     rules = ContractSelectionRules(
         min_dte=5,
